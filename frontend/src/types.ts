@@ -1,0 +1,12 @@
+export type RecordBase = { id: string; created_at: string };
+export type Program = RecordBase & { name: string; policy: string; authorization: string; authorized: boolean };
+export type Asset = RecordBase & { program_id: string; pattern: string; allowed: boolean; note: string };
+export type Investigation = RecordBase & { program_id: string; title: string; target: string };
+export type Evidence = RecordBase & { investigation_id: string; filename: string; storage_name: string; sha256: string; size: number; provenance: string };
+export type Finding = RecordBase & { investigation_id: string; title: string; severity: string; cwe: string; owasp: string; hypothesis: string; verified: string; conclusion: string; steps: string; impact: string; remediation: string; evidence_ids: string[]; status: string; reward_cents: number; currency: string; submission_reference: string };
+export type Journal = RecordBase & { investigation_id: string; body: string };
+export type Report = RecordBase & { investigation_id: string; language: string; markdown: string };
+export type Analysis = RecordBase & { investigation_id: string; provider: string; model: string; result: string; usage: { estimated_cost_usd?: number } };
+export type Workspace = { programs: Program[]; assets: Asset[]; investigations: Investigation[]; evidence: Evidence[]; findings: Finding[]; journals: Journal[]; reports: Report[]; analyses: Analysis[] };
+export type Settings = { storage: string; openai_configured: boolean; ollama_configured: boolean; openai_model: string; ollama_model: string; input_cost_per_million: number; output_cost_per_million: number };
+export type Preview = { consent_id: string; digest: string; payload: string; instructions: string; provider: string; model: string; warning: string; approximate_input_tokens: number; estimated_max_cost_usd: number };

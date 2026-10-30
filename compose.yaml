@@ -1,0 +1,19 @@
+services:
+  caspar:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - caspar_data:/data
+    environment:
+      CASPAR_DATA_DIR: /data
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      AI_INPUT_COST_PER_MILLION: ${AI_INPUT_COST_PER_MILLION:-0}
+      AI_OUTPUT_COST_PER_MILLION: ${AI_OUTPUT_COST_PER_MILLION:-0}
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  caspar_data:
