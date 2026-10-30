@@ -22,6 +22,7 @@ from .config import Settings, REPO
 from .db import database
 from .storage import validate_filename, evidence_path, read_evidence, MAX_UPLOAD
 from .middleware import BodyLimit
+from .testing import register_testing
 
 
 def serialize(record):
@@ -38,7 +39,7 @@ def create_app(settings=None):
         yield
         engine.dispose()
 
-    app = FastAPI(title='CASPAR Personal Research', version='0.1.0', lifespan=lifespan,
+    app = FastAPI(title='CASPAR Personal Research', version='0.2.0', lifespan=lifespan,
                   docs_url=None, redoc_url=None, openapi_url=None)
     app.state.engine = engine
     app.state.sessions = sessions
@@ -121,7 +122,7 @@ def create_app(settings=None):
     @app.get('/api/workspace')
     def workspace(session: Session = Depends(db)):
         return {model.__tablename__: [serialize(record) for record in rows(session, model)] for model in
-                (m.Program, m.Asset, m.Investigation, m.Journal, m.Evidence, m.Finding, m.Report, m.Analysis)}
+                (m.Program, m.Asset, m.Investigation, m.Journal, m.Evidence, m.Finding, m.Report, m.Analysis, m.TestPlan, m.TestRun)}
 
     @app.post('/api/programs', status_code=201)
     def program_create(body: s.ProgramInput, session: Session = Depends(db)):
@@ -215,6 +216,8 @@ def create_app(settings=None):
         record = get(session, m.Evidence, id)
         if any(id in finding.evidence_ids for finding in rows(session, m.Finding, investigation_id=record.investigation_id)):
             raise HTTPException(409, 'Evidência vinculada a um achado. Remova o vínculo antes de excluir.')
+        if any(id in run.evidence_ids for run in rows(session, m.TestRun, investigation_id=record.investigation_id)):
+            raise HTTPException(409, 'Evidência preservada no histórico de testes. Exclua a investigação para remover esse histórico e seus arquivos.')
         path = evidence_path(root, record.storage_name)
         # Reports/analyses are snapshots; remove them to avoid retaining deleted source data.
         for model in (m.Report, m.Analysis, m.Consent):
@@ -242,7 +245,8 @@ def create_app(settings=None):
         investigation = get(session, m.Investigation, id)
         program = get(session, m.Program, investigation.program_id)
         markdown = reports.render(program, investigation, rows(session, m.Finding, investigation_id=id),
-                                  rows(session, m.Evidence, investigation_id=id), rows(session, m.Journal, investigation_id=id), body.language)
+                                  rows(session, m.Evidence, investigation_id=id), rows(session, m.Journal, investigation_id=id), body.language,
+                                  rows(session, m.TestPlan, investigation_id=id), rows(session, m.TestRun, investigation_id=id))
         return save(session, m.Report(investigation_id=id, language=body.language, markdown=markdown))
 
     @app.get('/api/reports/{id}/download')
@@ -303,7 +307,9 @@ def create_app(settings=None):
                 source.backup(dest)
                 # Approval tokens and their content must not survive a restore.
                 dest.execute('DELETE FROM consents')
+                dest.execute("UPDATE test_plans SET status='planned', approved_revision=0, approved_at='', approval_context='' WHERE status='approved'")
                 dest.commit()
+                schema = dest.execute('SELECT version_num FROM alembic_version').fetchone()[0]
             with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
                 archive.write(snapshot, 'caspar.sqlite3')
                 manifest = {}
@@ -311,7 +317,7 @@ def create_app(settings=None):
                     content = read_evidence(root, record)
                     archive.writestr('evidence/' + record.storage_name, content)
                     manifest[record.storage_name] = record.sha256
-                archive.writestr('manifest.json', json.dumps({'schema': '0001', 'evidence': manifest}))
+                archive.writestr('manifest.json', json.dumps({'schema': schema, 'evidence': manifest}))
         content = output.getvalue()
         name = 'caspar-backup-' + uuid4().hex + '.zip'
         path = root / 'backups' / name
@@ -351,6 +357,7 @@ def create_app(settings=None):
         session.delete(record)
         session.commit()
 
+    register_testing(app, db, get, rows, save, allowed, linked_evidence, read_evidence, root)
     app.add_middleware(BodyLimit)
     dist = REPO / 'frontend' / 'dist'
     if dist.is_dir():

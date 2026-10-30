@@ -14,3 +14,7 @@ Fora desta etapa: SaaS, autenticação remota, equipes, cobrança, exploração,
 O objetivo do produto também inclui testes de segurança e pentest para bug bounty, em ambientes próprios ou expressamente autorizados. A restrição de análise de material importado descreve o MVP entregue, não o limite definitivo do produto. A evolução mantém ausência de ações automáticas sobre alvos e exige execução deliberada pelo proprietário.
 
 Próxima etapa: [workspace de testes web/API e validação de achados](PENTEST_ROADMAP.md). Este planejamento não habilita tráfego ou execução ativa na versão atual.
+
+## Entrega 0.2 — planos e registros manuais
+
+Implementados planos versionados, aprovação explícita com escopo vigente, registro de resultados e retestes com snapshots e evidências, revisão humana e vínculo a achados. Relatórios e backups incluem o histórico. A migration `0002` preserva o acervo anterior. O aplicativo continua sem executor de rede ou shell.

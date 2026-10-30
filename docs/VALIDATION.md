@@ -1,5 +1,18 @@
 # Registro de validação — 30/10/2026
 
+## Versão 0.2 — planejamento e execuções manuais
+
+- **63 testes Python passaram**, incluindo os 45 anteriores e 18 casos novos: migração de banco `0001` com preservação de dados, planos versionados, aprovação explícita de uso único, invalidação por edição/política/escopo (inclusive mudanças entre a prévia e a aprovação), expiração, integridade e vínculo das evidências, revisão imutável, retestes, snapshots, persistência após reabertura e relatórios PT/EN. O aviso de depreciação do cliente Starlette/httpx permanece.
+- **9 testes de interface passaram**: os 4 anteriores e 5 novos para contexto de investigação, cadastro de plano, aprovação explícita, erro de versão sem perda imediata do formulário e registro manual com evidência selecionada.
+- **Build TypeScript/Vite passou**, incluindo a compilação dos novos testes e do módulo de interface.
+- **Smoke HTTP real passou** em servidor temporário no loopback: HTML/JavaScript, workspace sintético, criação/aprovação de plano, registro manual, revisão vinculada a achado, relatório em inglês, PDF e backup. Nenhum alvo ou modelo externo foi acessado.
+- O servidor temporário foi encerrado e os arquivos sintéticos removidos. Nenhum acervo pessoal foi migrado durante a validação.
+- **Docker build passou** e os mesmos **63 testes Python passaram no Linux**, em container descartável sem rede, como usuário sem privilégios e com apenas os testes do host montados como leitura. O container foi removido ao terminar.
+
+Os resultados abaixo documentam a validação inicial da versão 0.1. A inspeção visual em navegador real e a validação prática pelo proprietário continuam pendentes.
+
+## Versão 0.1 — base pessoal
+
 Verificação local com Python 3.12.10, Node 24.20.0 e dependências fixadas em `requirements.lock` e `frontend/package-lock.json`. Dados usados são exclusivamente sintéticos, em diretórios temporários fora do repositório.
 
 | Verificação | Resultado |

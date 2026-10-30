@@ -105,3 +105,35 @@ class Analysis(Record, Base):
     model: Mapped[str] = mapped_column(String(160))
     result: Mapped[str] = mapped_column(Text)
     usage: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class TestPlan(Record, Base):
+    __tablename__ = 'test_plans'
+    investigation_id: Mapped[str] = mapped_column(ForeignKey('investigations.id', ondelete='CASCADE'))
+    title: Mapped[str] = mapped_column(String(200))
+    objective: Mapped[str] = mapped_column(Text)
+    technique: Mapped[str] = mapped_column(String(200))
+    preconditions: Mapped[str] = mapped_column(Text, default='')
+    steps: Mapped[str] = mapped_column(Text)
+    expected_result: Mapped[str] = mapped_column(Text)
+    stop_conditions: Mapped[str] = mapped_column(Text)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(20), default='planned')
+    approved_revision: Mapped[int] = mapped_column(Integer, default=0)
+    approved_at: Mapped[str] = mapped_column(String, default='')
+    approval_context: Mapped[str] = mapped_column(String(64), default='')
+
+
+class TestRun(Record, Base):
+    __tablename__ = 'test_runs'
+    investigation_id: Mapped[str] = mapped_column(ForeignKey('investigations.id', ondelete='CASCADE'))
+    test_plan_id: Mapped[str] = mapped_column(ForeignKey('test_plans.id', ondelete='CASCADE'))
+    plan_snapshot: Mapped[dict] = mapped_column(JSON)
+    performed_at: Mapped[str] = mapped_column(String)
+    outcome: Mapped[str] = mapped_column(String(30))
+    observed_result: Mapped[str] = mapped_column(Text)
+    limitations: Mapped[str] = mapped_column(Text, default='')
+    evidence_ids: Mapped[list] = mapped_column(JSON)
+    finding_id: Mapped[str | None] = mapped_column(ForeignKey('findings.id', ondelete='SET NULL'), nullable=True)
+    review_notes: Mapped[str] = mapped_column(Text, default='')
+    reviewed_at: Mapped[str] = mapped_column(String, default='')

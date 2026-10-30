@@ -20,7 +20,7 @@ def quote(value):
     return '\n'.join('> ' + markdown_text(line) for line in (value or '').splitlines()) or '> —'
 
 
-def render(program, investigation, findings, evidence, journals, language):
+def render(program, investigation, findings, evidence, journals, language, plans=(), runs=()):
     labels = LABELS[language]
     lines = [f'# CASPAR — {labels[0]}', '', quote(investigation.title), '',
              f'**{labels[1]}:**', quote(program.name), f'**{labels[2]}:**', quote(investigation.target),
@@ -31,6 +31,37 @@ def render(program, investigation, findings, evidence, journals, language):
         for index, field in enumerate(['hypothesis', 'verified', 'conclusion', 'steps', 'impact', 'remediation'], 4):
             lines += [f'### {labels[index]}', quote(getattr(finding, field) or labels[11])]
         lines += ['Evidence IDs: ' + ', '.join(finding.evidence_ids)]
+        linked_runs = [run.id for run in runs if run.finding_id == finding.id]
+        if linked_runs:
+            lines += [('Execuções relacionadas: ' if language == 'pt' else 'Related test runs: ') + ', '.join(linked_runs)]
+    testing_labels = {
+        'pt': ['Planos de testes manuais', 'Histórico de execuções manuais', 'Objetivo', 'Técnica', 'Pré-condições', 'Passos planejados', 'Resultado esperado', 'Condições de interrupção', 'Resultado observado', 'Limitações', 'Revisão humana', 'Ainda não revisado', 'Comportamento esperado', 'Possível problema observado', 'Inconclusivo'],
+        'en': ['Manual test plans', 'Manual execution history', 'Objective', 'Technique', 'Preconditions', 'Planned steps', 'Expected result', 'Stop conditions', 'Observed result', 'Limitations', 'Human review', 'Not yet reviewed', 'Expected behavior', 'Potential issue observed', 'Inconclusive'],
+    }[language]
+    fields = ('objective', 'technique', 'preconditions', 'steps', 'expected_result', 'stop_conditions')
+    if plans:
+        lines += [f'## {testing_labels[0]}']
+        for plan in plans:
+            lines += ['### ' + markdown_text(plan.title), f'ID: {plan.id} / revision: {plan.revision} / status: {plan.status}']
+            for index, field in enumerate(fields, 2):
+                lines += [f'**{testing_labels[index]}**', quote(getattr(plan, field))]
+    if runs:
+        lines += [f'## {testing_labels[1]}', quote('Registros declarados pelo pesquisador; o CASPAR não executou estes testes.' if language == 'pt' else 'Researcher-declared records; CASPAR did not execute these tests.')]
+        outcomes = dict(zip(('expected_behavior', 'observed_issue', 'inconclusive'), testing_labels[12:15]))
+        for run in runs:
+            snapshot = run.plan_snapshot
+            lines += ['### ' + markdown_text(snapshot['title']), f'ID: {run.id} / plan: {run.test_plan_id} / revision: {snapshot["revision"]}',
+                      run.performed_at, outcomes[run.outcome], quote(snapshot['scope']['target']),
+                      quote(snapshot['scope']['authorization']), 'Approval: ' + snapshot['approved_at']]
+            for index, field in enumerate(fields, 2):
+                lines += [f'**{testing_labels[index]}**', quote(snapshot[field])]
+            lines += [f'**{testing_labels[8]}**', quote(run.observed_result), f'**{testing_labels[9]}**', quote(run.limitations),
+                      'Evidence IDs: ' + ', '.join(run.evidence_ids)]
+            for evidence_id, digest in snapshot['evidence_manifest'].items():
+                lines += [f'{evidence_id}: SHA-256 {digest}']
+            lines += [f'**{testing_labels[10]}**', quote(run.review_notes if run.reviewed_at else testing_labels[11])]
+            if run.finding_id:
+                lines += ['Finding ID: ' + run.finding_id]
     lines += ['', f'## {labels[10]}']
     for record in evidence:
         lines += [f'- ID: {record.id}', quote(record.filename), f'  SHA-256: {record.sha256}', f'  Bytes: {record.size}', quote(record.provenance)]

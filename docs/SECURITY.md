@@ -25,6 +25,8 @@ O Scope Guard é um controle de organização de autorização registrada pelo p
 
 ## Proteção do diretório
 
+Planos e execuções manuais (0.2) não concedem capacidade de rede. A aprovação é vinculada à revisão do plano e ao digest do contexto de escopo, com expiração em 24 horas e consumo atômico ao registrar o resultado. Revisão de histórico não exige autorização ainda vigente para permitir documentação de trabalhos encerrados, mas novos planos, edições, aprovações e registros exigem escopo permitido. Históricos preservam a autorização declarada na época; o sistema não comprova sua legitimidade.
+
 No Windows, o setup aplica ACL sem herança, permitindo usuário atual e SYSTEM na pasta dedicada. Execute novamente após restauração ou mudança de caminho. Unix utiliza permissões privadas. Não use pastas sincronizadas automaticamente ou compartilhadas. Use BitLocker/FileVault/LUKS ou equivalente para proteger dados em repouso; o SQLite não é criptografado pela aplicação.
 
 O prefixo do diretório escolhido é validado antes de limpeza. A API de exclusão nunca recebe caminho de filesystem e só trabalha nas pastas fixas do acervo. Não altere links, junctions ou arquivos internos enquanto o servidor está em execução.

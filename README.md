@@ -1,6 +1,6 @@
 # CASPAR — Personal Research Edition
 
-Ferramenta pessoal para organizar pesquisa responsável de bug bounty e material previamente coletado. O fluxo é **Programa → Investigação → Evidência → Achado → Relatório**. A versão 0.1.0 tem frontend React/TypeScript e API FastAPI com SQLite, migrations Alembic e armazenamento local fora do Git.
+Ferramenta pessoal para planejar e documentar pesquisa responsável de bug bounty e pentest, com material previamente coletado. O fluxo é **Programa → Investigação → Plano de teste → Registro manual → Evidência → Achado → Relatório**. A versão 0.2.0 tem frontend React/TypeScript e API FastAPI com SQLite, migrations Alembic e armazenamento local fora do Git.
 
 Não existem varreduras, exploração, requisições a alvos, agentes autônomos, SaaS, equipes ou cobrança. O único tráfego de pesquisa permitido pela aplicação é uma análise opcional de texto por IA, após revisão e aprovação por envio.
 
@@ -63,6 +63,22 @@ Sem dados de demonstração por padrão. Para instalar apenas fixtures sintétic
 ```
 
 O comando é idempotente e não conecta a nenhum alvo. O achado de exemplo registra que nenhuma vulnerabilidade foi demonstrada.
+
+## Testes e retestes manuais — versão 0.2
+
+Selecione uma investigação em **Testes e retestes** e crie um plano com objetivo, técnica permitida, pré-condições, passos, resultado esperado e condições de interrupção.
+
+1. Abra **Revisar e aprovar**, leia o plano e a autorização e confirme a versão. A aprovação permite um registro manual por até 24 horas; não executa testes nem envia requisições.
+2. Depois de realizar o teste por conta própria no ambiente autorizado, importe suas evidências na investigação e abra **Registrar execução manual**.
+3. Informe data/hora, comportamento esperado, possível problema observado ou resultado inconclusivo, descrição e limitações. Selecione pelo menos uma evidência. O backend confere vínculo e SHA-256; um resultado inconclusivo exige registrar seu motivo.
+4. Revise o resultado e, se fizer sentido, vincule a um achado da mesma investigação. Resultados negativos e inconclusivos também são preservados. A revisão salva não pode ser sobrescrita.
+5. Para retestar, aprove novamente o plano e registre uma nova execução. Alterar o plano incrementa sua versão e invalida a aprovação; alterar política ou escopo também exige nova aprovação. Cada registro guarda o plano, a autorização e os hashes usados naquele momento.
+
+Planos seguem os estados Planejado → Aprovado → Registrado/Inconclusivo → Revisado. Um reteste reabre a aprovação sem alterar o histórico. Registro e aprovação não comprovam que o teste externo foi realizado nem que a autorização é legítima: são declarações do pesquisador.
+
+Os relatórios incluem os planos atuais e os registros históricos, com resultado, limitações, evidências, revisão e vínculo ao achado. Evidências usadas nesse histórico não podem ser removidas isoladamente; para apagar o contexto completo, exclua sua investigação ou todos os dados.
+
+Ao atualizar da versão 0.1, faça backup, encerre o servidor, atualize o código, recompile o frontend com `npm.cmd run build` em `frontend` e reinicie o backend: a migration `0002` cria as novas tabelas preservando os registros existentes. Backups novos incluem os planos e registros; aprovações pendentes são limpas no snapshot para exigir revisão após restauração. Aprovações na instalação atual continuam válidas.
 
 ## Configuração local e IA opcional
 
@@ -127,7 +143,7 @@ npm.cmd run build
 
 No Linux/macOS use `.venv/bin/python` e `npm`. O lock Python registra as versões verificadas, incluindo dependências de teste; `frontend/package-lock.json` fixa a árvore npm. Para atualizar, revise as novas versões, regenere os locks e repita a suíte.
 
-Os testes usam bancos temporários, migrations reais, fixtures sintéticas e transportes simulados para IA. HTTP externo real é bloqueado nos testes. Eles cobrem persistência, backup/restauração, exclusão, escopo, upload, integridade, referências, exportação PT/EN, consentimento e interface. Veja [registro de validação](docs/VALIDATION.md).
+Os testes usam bancos temporários, migrations reais, fixtures sintéticas e transportes simulados para IA. HTTP externo real é bloqueado nos testes. Eles cobrem persistência, backup/restauração, exclusão, escopo, upload, integridade, referências, exportação PT/EN, consentimento, planos, aprovação de versão, execuções manuais e interface. Veja [registro de validação](docs/VALIDATION.md).
 
 ## Docker Compose opcional
 

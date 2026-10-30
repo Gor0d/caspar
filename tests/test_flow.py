@@ -97,7 +97,7 @@ def test_migration_matches_models_and_is_idempotent(app):
     from backend.db import database
     with app.state.engine.connect() as connection:
         assert compare_metadata(MigrationContext.configure(connection), Base.metadata) == []
-        assert connection.exec_driver_sql('select version_num from alembic_version').scalar() == '0001'
+        assert connection.exec_driver_sql('select version_num from alembic_version').scalar() == '0002'
         assert connection.exec_driver_sql('PRAGMA foreign_keys').scalar() == 1
     engine, _ = database(app.state.settings.caspar_data_dir)
     assert 'findings' in inspect(engine).get_table_names()

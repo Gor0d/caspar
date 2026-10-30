@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from datetime import datetime, timezone
 
 import httpx
 
@@ -45,12 +46,30 @@ def main():
                 workspace = client.get('/api/workspace').json()
                 assert len(workspace['programs']) == 1 and len(workspace['evidence']) == 1
                 investigation = workspace['investigations'][0]['id']
+                plan_body = {'title': 'Manual synthetic review', 'objective': 'Compare an offline response fixture',
+                             'technique': 'Offline fixture review', 'steps': 'Read the already imported synthetic response',
+                             'expected_result': '403 Forbidden', 'stop_conditions': 'Stop if real user data is present'}
+                plan_response = client.post(f'/api/investigations/{investigation}/test-plans', json=plan_body)
+                assert plan_response.status_code == 201
+                plan_id = plan_response.json()['id']
+                approval = client.get(f'/api/test-plans/{plan_id}/approval-preview?expected_revision=1').json()
+                assert client.post(f'/api/test-plans/{plan_id}/approve', json={'approved': True, 'expected_revision': 1, 'context_digest': approval['context_digest']}).status_code == 200
+                run_response = client.post(f'/api/test-plans/{plan_id}/runs', json={
+                    'expected_revision': 1, 'performed_at': datetime.now(timezone.utc).isoformat(),
+                    'outcome': 'expected_behavior', 'observed_result': 'Synthetic fixture contains 403. No live test performed.',
+                    'limitations': 'Synthetic data only.', 'evidence_ids': [workspace['evidence'][0]['id']]})
+                assert run_response.status_code == 201
+                run_id = run_response.json()['id']
+                assert client.post(f'/api/test-runs/{run_id}/review', json={
+                    'reviewed': True, 'review_notes': 'No vulnerability demonstrated by this fixture.',
+                    'finding_id': workspace['findings'][0]['id']}).status_code == 200
                 report = client.post(f'/api/investigations/{investigation}/reports', json={'language': 'en'})
                 assert report.status_code == 201
+                assert run_id in report.json()['markdown']
                 pdf = client.get('/api/reports/' + report.json()['id'] + '/download?format=pdf')
                 assert pdf.content.startswith(b'%PDF-')
                 assert client.post('/api/backup').status_code == 200
-                print('PASS: real HTTP, frontend + JS asset, synthetic workspace, English report/PDF and backup. No external AI calls.')
+                print('PASS: real loopback HTTP, frontend + JS, manual plan/approval/run/review, English report/PDF and backup. No target or AI calls.')
         finally:
             process.terminate()
             try:

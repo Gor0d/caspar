@@ -1,4 +1,5 @@
 from typing import Literal
+from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
@@ -79,3 +80,53 @@ class ApproveInput(Input):
 
 class DeleteInput(Input):
     confirmation: Literal['DELETE ALL LOCAL DATA']
+
+
+class TestPlanInput(Input):
+    title: str = Field(min_length=1, max_length=200)
+    objective: str = Field(min_length=1, max_length=10000)
+    technique: str = Field(min_length=1, max_length=200)
+    preconditions: str = Field(default='', max_length=10000)
+    steps: str = Field(min_length=1, max_length=20000)
+    expected_result: str = Field(min_length=1, max_length=10000)
+    stop_conditions: str = Field(min_length=1, max_length=10000)
+
+
+class TestPlanUpdate(TestPlanInput):
+    expected_revision: int = Field(ge=1)
+
+
+class TestPlanApproval(Input):
+    approved: Literal[True]
+    expected_revision: int = Field(ge=1)
+    context_digest: str = Field(pattern=r'^[a-f0-9]{64}$')
+
+
+class TestRunInput(Input):
+    expected_revision: int = Field(ge=1)
+    performed_at: datetime
+    outcome: Literal['expected_behavior', 'observed_issue', 'inconclusive']
+    observed_result: str = Field(min_length=1, max_length=20000)
+    limitations: str = Field(default='', max_length=10000)
+    evidence_ids: list[str] = Field(min_length=1, max_length=100)
+
+    @field_validator('performed_at')
+    @classmethod
+    def recorded_time(cls, value):
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError('Informe a data e hora com fuso horário.')
+        if value > datetime.now(timezone.utc):
+            raise ValueError('A execução manual deve ter ocorrido no passado.')
+        return value.astimezone(timezone.utc)
+
+    @model_validator(mode='after')
+    def inconclusive_needs_reason(self):
+        if self.outcome == 'inconclusive' and not self.limitations:
+            raise ValueError('Registre o motivo do resultado inconclusivo nas limitações.')
+        return self
+
+
+class TestRunReview(Input):
+    reviewed: Literal[True]
+    review_notes: str = Field(min_length=1, max_length=10000)
+    finding_id: str | None = Field(default=None, min_length=1, max_length=36)

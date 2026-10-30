@@ -6,6 +6,8 @@ O diretório mostrado em Dados e privacidade é a fonte de verdade. Padrão: `~/
 
 Migrations são aplicadas no início do backend e no comando `init`. Antes de atualizar o código ou dependências, encerre o servidor e faça uma cópia protegida do diretório completo ou um backup pela interface. Não use CLI de escrita simultaneamente ao servidor.
 
+Na versão 0.2, `test_plans` e `test_runs` guardam planos versionados e histórico de registros manuais. Atualizar um plano preserva os snapshots de registros anteriores. Aprovação tem uso único e validade de 24 horas; mudanças de política ou escopo exigem nova aprovação. Após restaurar um backup, planos que aguardavam registro voltam a Planejado para revisão. O restante do histórico permanece.
+
 ## Restaurar backup da aplicação
 
 Somente restaure um ZIP gerado por uma instalação CASPAR de confiança. Não abra nem extraia backups recebidos de terceiros. O fluxo abaixo foi coberto por teste de restauração com snapshot gerado pela própria aplicação.

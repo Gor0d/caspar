@@ -175,6 +175,27 @@ footer > span:last-child { display: flex; align-items: center; gap: 7px; color: 
 .spin { animation: spin 1s linear infinite; }
 .skip-link { position: fixed; top: -60px; left: 12px; z-index: 100; padding: 12px; color: #10241a; background: #86e9b7; border-radius: 5px; }
 .skip-link:focus { top: 10px; }
+.testing-message { margin: 18px 20px; }
+.testing-intro { display: flex; gap: 12px; align-items: flex-start; padding: 18px 21px; background: #14211b; color: #a9c6b6; border-bottom: 1px solid #2b4035; }
+.testing-intro svg { flex-shrink: 0; margin-top: 3px; }
+.testing-intro p { font-size: 12px; }
+.test-plan { padding: 22px; border-bottom: 1px solid #2b3944; }
+.test-plan:last-child { border-bottom: 0; }
+.test-plan-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.test-plan .toolbar { padding: 16px 0; border-bottom: 0; }
+.test-spec { margin: 18px 0; font-size: 12px; }
+.test-spec > summary { color: #98c6af; padding: 8px 0; }
+.test-spec > div { background: #0e151c; border: 1px solid #2c3944; padding: 16px; border-radius: 5px; margin-top: 7px; }
+.test-history { border-top: 1px solid #2a3842; padding-top: 16px; }
+.testing-panel h4, .approval-context h4, .approval-field h4 { font-size: 11px; color: #9eb9aa; margin: 16px 0 7px; font-weight: 600; }
+.test-run { border: 1px solid #2c3944; border-radius: 5px; margin-top: 12px; }
+.test-run > summary { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 11px; padding: 15px; background: #172029; }
+.test-run > summary > span:not(.badge) { color: #a0afba; }
+.test-run-body { padding: 4px 18px 18px; }
+.test-run-body > .button { margin-top: 18px; }
+.test-run-body > p { margin-bottom: 10px; }
+.approval-context { border: 1px solid #345241; border-radius: 5px; padding: 0 16px 16px; background: #14231b; }
+.approval-field { margin: 15px 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media(min-width: 1600px) { main { padding-top: 50px; }.dashboard-grid { min-height: 430px; } }
 @media(max-width: 1190px) { .sidebar { width: 205px; padding-left: 11px; padding-right: 11px; }.main-shell { margin-left: 205px; width: calc(100% - 205px); } main { padding: 27px 24px 0; }.topbar { padding: 0 24px; }.stats-grid { gap: 10px; }.stat-card { padding: 17px 13px; }.stat-label { font-size: 10px; }.two-column { grid-template-columns: 1fr; }.dashboard-grid { grid-template-columns: 1fr; }.context-bar { flex-wrap: wrap; }.safety-strip .badge { display: none; }.reward { display: none; } }

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 
-const workspace = { programs: [], assets: [], investigations: [], evidence: [], findings: [], journals: [], reports: [], analyses: [] };
+const workspace = { programs: [], assets: [], investigations: [], evidence: [], findings: [], journals: [], reports: [], analyses: [], test_plans: [], test_runs: [] };
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async (url: string, options?: RequestInit) => {
     if (options?.method === 'POST') return { ok: false, status: 422, json: async () => ({ detail: 'Registre a autorização.' }) };

@@ -23,6 +23,9 @@ erDiagram
     INVESTIGATION ||--o{ REPORT : snapshots
     INVESTIGATION ||--o{ CONSENT : approves
     INVESTIGATION ||--o{ ANALYSIS : reviews
+    INVESTIGATION ||--o{ TEST_PLAN : plans
+    TEST_PLAN ||--o{ TEST_RUN : records
+    FINDING o|--o{ TEST_RUN : relates
 ```
 
 Todos os IDs são UUID. Datas são UTC ISO-8601; a interface as mostra no fuso do navegador. Valores de recompensa são inteiros em centavos e moeda ISO de três letras, sem somar moedas diferentes. Vínculos de evidências dos achados são listas JSON, validadas no serviço para impedir referências entre investigações. Remoção de evidência vinculada é bloqueada. Chaves estrangeiras e cascatas estão habilitadas em cada conexão SQLite.
@@ -67,6 +70,23 @@ Todas as rotas de dados exigem `X-Caspar-Local: 1`. O frontend usa a mesma orige
 | `DELETE /api/data` | Exclusão com confirmação literal |
 
 Há ainda exclusões unitárias de programa, investigação, ativo e evidência. Diários são registros anexados; a versão inicial não oferece edição/exclusão isolada de cada nota. Excluir sua investigação remove todo o contexto.
+
+## Testes manuais — 0.2
+
+`backend/testing.py` fornece planejamento e registros sem executor, shell ou cliente de rede. Planos são versionados; edição usa `expected_revision` e invalida a aprovação. Aprovar associa a versão ao digest da autorização, política e ativos vigentes, por 24 horas e um único registro. Na gravação, escopo e integridade são conferidos novamente. O registro e o consumo da aprovação são commitados na mesma transação.
+
+Cada execução mantém snapshot do plano, autorização e hashes, data informada com fuso, resultado, limitações e evidências. Resultados possíveis: comportamento esperado, possível problema e inconclusivo. Revisão é explícita e salva uma única vez; vínculo com achado só aceita a mesma investigação. Retestes criam novas linhas, preservando as anteriores. Evidências desse histórico não podem ser excluídas isoladamente. A exclusão da investigação continua removendo o contexto completo.
+
+| Método e caminho | Função |
+| --- | --- |
+| `POST /api/investigations/{id}/test-plans` | Criar plano em escopo autorizado |
+| `PUT /api/test-plans/{id}` | Editar com versão esperada e invalidar aprovação |
+| `GET /api/test-plans/{id}/approval-preview?expected_revision=N` | Ler escopo vigente e digest para aprovação da versão selecionada |
+| `POST /api/test-plans/{id}/approve` | Aprovar versão e escopo vigentes |
+| `POST /api/test-plans/{id}/runs` | Registrar manualmente resultado com evidências; não executa ações |
+| `POST /api/test-runs/{id}/review` | Revisão imutável e vínculo opcional a achado |
+
+Workspace, JSON exportado, backup e relatórios incluem planos e execuções. O backup remove aprovações pendentes no snapshot. Migration `0002` acrescenta duas tabelas, sem reescrever as existentes. Os registros são declarações do pesquisador, não prova de execução real, autorização válida ou vulnerabilidade confirmada.
 
 ## Evolução do schema
 
